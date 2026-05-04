@@ -1,0 +1,830 @@
+这是您要求的Capybara主题闯关游戏，它结合了马来语量词配对学习与三款可爱小游戏（打地鼠、抓宝可梦、接香蕉），通过精选音效和趣味机制让学生沉浸其中。
+```html
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Capybara 魔法学堂 · 量词大冒险 + 三大小游戏</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: linear-gradient(145deg, #b9dc8c 0%, #92c46a 100%);
+            font-family: 'Segoe UI', 'Comic Neue', 'Comic Sans MS', 'Chalkboard SE', cursive, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* 主面板 */
+        .game-world {
+            max-width: 750px;
+            width: 100%;
+            background: #fffcf0;
+            border-radius: 80px 80px 70px 70px;
+            box-shadow: 0 25px 40px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            transition: all 0.2s;
+        }
+
+        /* CAPYBARA 头部 */
+        .capybara-header {
+            background: #e5af70;
+            padding: 18px 20px 12px;
+            text-align: center;
+            border-bottom: 6px solid #c2863c;
+            position: relative;
+        }
+        .capybara-header h1 {
+            margin: 0;
+            font-size: 1.9rem;
+            color: #3a2819;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            align-items: center;
+            text-shadow: 2px 2px 0 #ffdfaa;
+        }
+        .bouncing-capy {
+            font-size: 2.6rem;
+            animation: bounceHappy 1.8s infinite;
+            display: inline-block;
+        }
+        @keyframes bounceHappy {
+            0%,100%{ transform: translateY(0px) rotate(0deg); }
+            50%{ transform: translateY(-6px) rotate(3deg); }
+        }
+        .sub {
+            background: #fff0cf;
+            border-radius: 50px;
+            display: inline-block;
+            padding: 4px 20px;
+            font-weight: bold;
+            font-size: 0.8rem;
+            color: #b45a1c;
+            margin-top: 8px;
+        }
+
+        /* 进度/星星栏 */
+        .stats-bar {
+            background: #faefcf;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-weight: bold;
+        }
+        .level-badge {
+            background: #d6a76a;
+            padding: 5px 18px;
+            border-radius: 40px;
+            color: white;
+        }
+        .star-counter {
+            background: #f7e2a4;
+            padding: 5px 18px;
+            border-radius: 40px;
+            color: #9b5e2c;
+        }
+
+        /* 主游戏区 (配对量词) */
+        .matching-area {
+            background: #fff9e8;
+            margin: 20px 22px;
+            padding: 20px 15px;
+            border-radius: 65px;
+            box-shadow: 0 10px 0 #e9dbbd;
+            text-align: center;
+        }
+        .question-card {
+            background: #fffbee;
+            font-size: 1.8rem;
+            padding: 20px 10px;
+            border-radius: 55px;
+            font-weight: bold;
+            color: #4a2a10;
+        }
+        .noun-word {
+            background: #fae6b3;
+            display: inline-block;
+            padding: 8px 24px;
+            border-radius: 70px;
+            box-shadow: inset 0 -2px 0 #cca96e;
+            margin: 5px 0;
+        }
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 16px;
+            margin-top: 25px;
+        }
+        .opt-btn {
+            background: #ffcf8a;
+            border: none;
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 12px 22px;
+            border-radius: 60px;
+            font-family: inherit;
+            box-shadow: 0 5px 0 #b56f2e;
+            cursor: pointer;
+            transition: 0.05s linear;
+            color: #402b18;
+        }
+        .opt-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #b56f2e;
+        }
+        .feedback {
+            margin-top: 20px;
+            font-size: 1rem;
+            font-weight: bold;
+            color: #ca6f28;
+            min-height: 60px;
+        }
+
+        /* 小游戏专用面板 */
+        .minigame-panel {
+            background: #7b5d3c;
+            border-radius: 55px;
+            margin: 12px 20px 20px;
+            padding: 16px;
+            box-shadow: inset 0 0 0 3px #fae1ac, 0 8px 20px rgba(0,0,0,0.2);
+        }
+        .minigame-header {
+            background: #fff0bf;
+            border-radius: 50px;
+            padding: 8px 18px;
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        .hidden {
+            display: none;
+        }
+        .game-area {
+            text-align: center;
+        }
+        .game-stats {
+            background: #efd394;
+            border-radius: 50px;
+            padding: 8px;
+            margin-top: 15px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+        }
+        .retry-btn {
+            background: #ffaa4a;
+            border: none;
+            padding: 7px 20px;
+            border-radius: 60px;
+            font-weight: bold;
+            font-family: inherit;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+        .reset-game {
+            background: #b6d98c;
+            border: none;
+            padding: 10px 25px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 1rem;
+            margin: 5px auto 18px;
+            display: block;
+            cursor: pointer;
+            box-shadow: 0 3px 0 #6f9c3a;
+        }
+        footer {
+            background: #f3e4c2;
+            text-align: center;
+            font-size: 0.7rem;
+            padding: 12px;
+            color: #7a521f;
+        }
+
+        /* 小游戏独立样式 */
+        .mole-grid, .poke-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            justify-items: center;
+            margin: 12px 0;
+        }
+        .hole, .poke-card {
+            width: 85px;
+            height: 85px;
+            background: #4b2e15;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            cursor: pointer;
+            transition: 0.05s;
+            box-shadow: inset 0 6px 0 #2c1a0a;
+        }
+        .capy-mole {
+            background: #c98844;
+            box-shadow: inset 0 2px 8px #faca7e;
+            animation: pop 0.1s;
+        }
+        .poke-card {
+            background: #e5b83c;
+            border-radius: 35px;
+            font-size: 3rem;
+            box-shadow: 0 6px 0 #b47c2a;
+        }
+        .poke-card:active {
+            transform: translateY(2px);
+        }
+        @keyframes pop {
+            0% { transform: scale(0.6); }
+            100% { transform: scale(1); }
+        }
+        canvas {
+            background: #8bc34a;
+            border-radius: 40px;
+            width: 100%;
+            max-width: 320px;
+            cursor: pointer;
+            display: block;
+            margin: 0 auto;
+        }
+        .control-tip {
+            font-size: 0.7rem;
+            background: #fff0bf;
+            border-radius: 60px;
+            padding: 5px;
+            margin-top: 8px;
+        }
+        @media (max-width: 550px) {
+            .hole, .poke-card { width: 70px; height: 70px; font-size: 2.5rem; }
+            .question-card { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="game-world" id="gameContainer">
+    <div class="capybara-header">
+        <h1>
+            <span class="bouncing-capy">🦫✨</span>
+            Penjodoh Bilangan 大冒险
+            <span class="bouncing-capy">🍌🐾</span>
+        </h1>
+        <div class="sub">🐚 搭配正确量词，解锁超萌游戏！ 🐚</div>
+    </div>
+    <div class="stats-bar">
+        <span class="level-badge" id="taskCount">📖 配对进度 0 / 10</span>
+        <span class="star-counter" id="starDisplay">⭐ 魔法宝石: 0</span>
+    </div>
+
+    <!-- 主配对区 -->
+    <div id="mainGameArea">
+        <div class="matching-area">
+            <div class="question-card">
+                <span>🍃  “</span>
+                <span class="noun-word" id="nounTarget">bunga</span>
+                <span>”  🍃</span>
+            </div>
+            <div class="options" id="optionsContainer"></div>
+            <div class="feedback" id="feedbackMsg">🌸 点选正确的量词，连续答对3题开启奖励小游戏！ 🌸</div>
+        </div>
+    </div>
+
+    <!-- 动态小游戏面板 -->
+    <div id="miniGamePanel" class="minigame-panel hidden">
+        <div class="minigame-header">
+            <span id="gameTitle">🐣 小游戏</span>
+            <span id="gameTarget">目标: 完成5次</span>
+        </div>
+        <div id="dynamicGameZone" class="game-area"></div>
+        <div class="game-stats">
+            <span id="gameProgress">🎯 进度: 0 / 5</span>
+            <span id="gameTimer">⏱️ 剩余: 15s</span>
+        </div>
+        <button class="retry-btn" id="retryMiniBtn">🔄 重来挑战</button>
+        <div id="gameMessage" style="background:#fbebc0; border-radius:40px; padding:6px; margin-top:8px;">⭐ 超快完成获得额外宝石吧！</div>
+    </div>
+
+    <div id="actionArea" style="text-align:center; padding-bottom:15px;"></div>
+    <footer>🐢 每3次配对正确 → 开启随机小游戏 (打地鼠/抓宝可梦/接香蕉) 通过后额外奖励！</footer>
+</div>
+
+<script>
+    // ----------------------------- 音效系统 (可爱8-bit风格) -----------------------------
+    let audioCtx = null;
+    let soundsOn = false;
+    function initAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    function playEffect(type) {
+        if (!soundsOn || !audioCtx) return;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sine';
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.4);
+        if (type === 'correct') {
+            osc.frequency.value = 900;
+            gain.gain.setValueAtTime(0.35, now);
+            osc.start(); osc.stop(now+0.2);
+            const osc2 = audioCtx.createOscillator();
+            const g2 = audioCtx.createGain();
+            osc2.connect(g2); g2.connect(audioCtx.destination);
+            osc2.frequency.value = 1180;
+            g2.gain.setValueAtTime(0.2, now);
+            osc2.start(); osc2.stop(now+0.18);
+        } else if (type === 'wrong') {
+            osc.frequency.value = 520;
+            gain.gain.setValueAtTime(0.25, now);
+            osc.start(); osc.stop(now+0.25);
+        } else if (type === 'hit') {
+            osc.frequency.value = 780;
+            gain.gain.setValueAtTime(0.2, now);
+            osc.start(); osc.stop(now+0.1);
+        } else if (type === 'winGame') {
+            [740, 880, 1046, 1244].forEach((f,i)=>{
+                const o = audioCtx.createOscillator();
+                const g = audioCtx.createGain();
+                o.connect(g); g.connect(audioCtx.destination);
+                o.frequency.value = f;
+                g.gain.setValueAtTime(0.25, now+i*0.12);
+                g.gain.exponentialRampToValueAtTime(0.001, now+i*0.12+0.3);
+                o.start(now+i*0.12);
+                o.stop(now+i*0.12+0.25);
+            });
+        }
+    }
+    function allowAudio() {
+        if (soundsOn) return;
+        initAudio();
+        if (audioCtx) audioCtx.resume().then(() => { soundsOn = true; playEffect('correct'); });
+        else soundsOn = true;
+    }
+    document.body.addEventListener('click', allowAudio, { once: true });
+    
+    // ---------- 量词题库 (基于 Penjodoh Bilangan 表格) ----------
+    const questionBank = [
+        { noun: "bunga", correct: "kuntum" },
+        { noun: "pensel", correct: "batang" },
+        { noun: "sungai", correct: "batang" },
+        { noun: "jalan", correct: "batang" },
+        { noun: "roti", correct: "keping" },
+        { noun: "biskut", correct: "keping" },
+        { noun: "kad", correct: "keping" },
+        { noun: "kasut", correct: "pasang" },
+        { noun: "sarung tangan", correct: "pasang" },
+        { noun: "baju kurung", correct: "pasang" }
+    ];
+    let allQuestions = [...questionBank];
+    let currentQuestionObj = null;
+    let correctStreak = 0;       // 连续答对计数 (用于触发小游戏)
+    let totalMatched = 0;        // 总配对成功次数 (最高10)
+    let gameLock = false;         // 防止连点
+    let isInMiniGame = false;     // 是否处于小游戏模式
+    let miniGameType = null;
+    let miniGameActive = false;
+    let miniGameScore = 0, miniGameTime = 15;
+    let miniInterval = null, miniSpawnInterval = null;
+    let activeMoleIdx = null, pokeActiveIdx = null;
+    let canvasCtx = null, animFrame = null, bananas = [], basketX = 120;
+    let currentMiniWin = false;
+    
+    // DOM 元素
+    const nounSpan = document.getElementById('nounTarget');
+    const optionsDiv = document.getElementById('optionsContainer');
+    const feedDiv = document.getElementById('feedbackMsg');
+    const taskCountSpan = document.getElementById('taskCount');
+    const starDisplaySpan = document.getElementById('starDisplay');
+    const mainArea = document.getElementById('mainGameArea');
+    const miniPanel = document.getElementById('miniGamePanel');
+    const dynamicZone = document.getElementById('dynamicGameZone');
+    const gameProgressSpan = document.getElementById('gameProgress');
+    const gameTimerSpan = document.getElementById('gameTimer');
+    const gameMessageDiv = document.getElementById('gameMessage');
+    const gameTitleSpan = document.getElementById('gameTitle');
+    const gameTargetSpan = document.getElementById('gameTarget');
+    const actionArea = document.getElementById('actionArea');
+    
+    // 辅助函数
+    function updateStatsUI() {
+        taskCountSpan.innerText = `📖 配对进度 ${totalMatched} / ${allQuestions.length}`;
+        starDisplaySpan.innerText = `⭐ 魔法宝石: ${totalMatched}`;
+        if(totalMatched === allQuestions.length) {
+            feedDiv.innerHTML = "🎉✨ 太厉害了！你已经是量词大师！点击下方重玩 ✨🎉";
+            actionArea.innerHTML = '<button class="reset-game" id="fullResetBtn">🦫 全新冒险 🦫</button>';
+            const resetBtn = document.getElementById('fullResetBtn');
+            if(resetBtn) resetBtn.onclick = () => fullGameReset();
+        } else {
+            actionArea.innerHTML = '';
+        }
+    }
+    
+    // 随机抽取未配对过的题目 (保证每个名词只配对一次)
+    let usedIndices = [];
+    function getNewQuestion() {
+        if(usedIndices.length >= allQuestions.length) {
+            // 全部完成 -> 胜利
+            totalMatched = allQuestions.length;
+            updateStatsUI();
+            return null;
+        }
+        let available = allQuestions.filter((_, idx) => !usedIndices.includes(idx));
+        let randomIndex = Math.floor(Math.random() * available.length);
+        let originalIdx = allQuestions.findIndex(q => q.noun === available[randomIndex].noun && q.correct === available[randomIndex].correct);
+        usedIndices.push(originalIdx);
+        return { ...allQuestions[originalIdx], idx: originalIdx };
+    }
+    
+    // 渲染当前题目选项 (随机顺序)
+    function renderQuestion() {
+        if(totalMatched >= allQuestions.length) {
+            nounSpan.innerText = "🏆 毕业啦 🏆";
+            optionsDiv.innerHTML = '<div style="font-size:1.2rem">🎉 所有量词配对完成！ 🎉</div>';
+            return;
+        }
+        currentQuestionObj = getNewQuestion();
+        if(!currentQuestionObj) return;
+        nounSpan.innerText = currentQuestionObj.noun;
+        // 所有量词候选 (从整体量词集)
+        const allQuantifiers = ["kuntum", "batang", "keping", "pasang"];
+        let opts = [...allQuantifiers];
+        if(!opts.includes(currentQuestionObj.correct)) opts.push(currentQuestionObj.correct);
+        opts = [...new Set(opts)];
+        // 随机排序
+        opts.sort(() => Math.random() - 0.5);
+        optionsDiv.innerHTML = '';
+        opts.forEach(q => {
+            const btn = document.createElement('button');
+            btn.className = 'opt-btn';
+            btn.innerText = q;
+            btn.onclick = () => {
+                if(gameLock || isInMiniGame) {
+                    feedDiv.innerHTML = isInMiniGame ? "🎮 请先完成当前小游戏吧！ 🎮" : "请稍等...";
+                    return;
+                }
+                handleAnswer(q);
+            };
+            optionsDiv.appendChild(btn);
+        });
+        feedDiv.innerHTML = "🐸 选择一个量词搭配上面的名词！";
+    }
+    
+    function handleAnswer(selected) {
+        if(!currentQuestionObj) return;
+        if(selected === currentQuestionObj.correct) {
+            playEffect('correct');
+            feedDiv.innerHTML = `✅ 正确！ ${currentQuestionObj.noun} 配对 ${selected} ✅  +1 宝石`;
+            totalMatched++;
+            correctStreak++;
+            updateStatsUI();
+            if(totalMatched === allQuestions.length) {
+                playEffect('winGame');
+                renderQuestion();
+                return;
+            }
+            // 检查是否连续答对3次触发小游戏 (并且不在小游戏中)
+            if(correctStreak >= 3) {
+                correctStreak = 0;   // 重置连对计数，开启小游戏
+                startRandomMiniGame();
+                return;
+            }
+            // 正常继续下一题
+            renderQuestion();
+        } else {
+            playEffect('wrong');
+            feedDiv.innerHTML = `❌ 哎呀不对… “${selected}” 不适合 ${currentQuestionObj.noun}，再试试看！❌`;
+            correctStreak = 0;
+        }
+    }
+    
+    // 随机选择小游戏类型
+    function startRandomMiniGame() {
+        const games = ['whack', 'pokemon', 'minion'];
+        const randomType = games[Math.floor(Math.random() * games.length)];
+        isInMiniGame = true;
+        miniGameType = randomType;
+        miniPanel.classList.remove('hidden');
+        if(randomType === 'whack') {
+            gameTitleSpan.innerText = "🐭 水豚打地鼠！";
+            gameTargetSpan.innerText = "打中5只";
+            initWhackGame();
+        } else if(randomType === 'pokemon') {
+            gameTitleSpan.innerText = "⚡ 抓宝可梦！";
+            gameTargetSpan.innerText = "抓住5只皮卡丘";
+            initPokemonGame();
+        } else {
+            gameTitleSpan.innerText = "🍌 Minion 香蕉雨";
+            gameTargetSpan.innerText = "接住5根香蕉";
+            initMinionGame();
+        }
+        startMiniGameTimer();
+    }
+    
+    function startMiniGameTimer() {
+        if(miniInterval) clearInterval(miniInterval);
+        miniGameTime = 15;
+        gameTimerSpan.innerText = `⏱️ 剩余: ${miniGameTime}s`;
+        miniInterval = setInterval(() => {
+            if(!isInMiniGame || currentMiniWin) return;
+            if(miniGameTime <= 1) {
+                clearInterval(miniInterval);
+                miniInterval = null;
+                gameMessageDiv.innerHTML = "⏰ 时间到啦... 按「重来挑战」继续吧！";
+                playEffect('wrong');
+                miniGameActive = false;
+                if(miniSpawnInterval) clearInterval(miniSpawnInterval);
+                cleanupMiniSpecific();
+            } else {
+                miniGameTime--;
+                gameTimerSpan.innerText = `⏱️ 剩余: ${miniGameTime}s`;
+                if(miniGameTime === 0) {
+                    gameMessageDiv.innerHTML = "❌ 挑战失败！重来一次吧 ❌";
+                    miniGameActive = false;
+                    if(miniSpawnInterval) clearInterval(miniSpawnInterval);
+                    cleanupMiniSpecific();
+                }
+            }
+        }, 1000);
+    }
+    
+    function miniGameWin() {
+        if(currentMiniWin) return;
+        clearInterval(miniInterval); miniInterval = null;
+        if(miniSpawnInterval) clearInterval(miniSpawnInterval);
+        currentMiniWin = true;
+        miniGameActive = false;
+        playEffect('winGame');
+        gameMessageDiv.innerHTML = "🎉 小游戏胜利！获得额外宝石 + 继续配对！ 🎉";
+        // 额外奖励：增加一次配对进度（但不影响题目总数逻辑）让玩家更有成就感: 总匹配+1? 但不能超过上限。奖励一个额外进度且不会重复计题
+        if(totalMatched < allQuestions.length) {
+            totalMatched = Math.min(totalMatched+1, allQuestions.length);
+            updateStatsUI();
+            feedDiv.innerHTML = "✨ 小游戏奖励: 额外获得一次配对进度！ ✨";
+        }
+        setTimeout(() => {
+            closeMiniGameAndResume();
+        }, 1300);
+    }
+    
+    function closeMiniGameAndResume() {
+        miniPanel.classList.add('hidden');
+        isInMiniGame = false;
+        currentMiniWin = false;
+        miniGameActive = false;
+        cleanupMiniSpecific();
+        // 继续主游戏 刷新题目
+        if(totalMatched >= allQuestions.length) {
+            renderQuestion();
+        } else {
+            renderQuestion();
+        }
+    }
+    
+    function cleanupMiniSpecific() {
+        if(miniSpawnInterval) { clearInterval(miniSpawnInterval); miniSpawnInterval = null; }
+        if(animFrame) { cancelAnimationFrame(animFrame); animFrame = null; }
+        if(miniGameType === 'minion' && canvasCtx) {
+            const canvasElem = document.getElementById('minionCanvas');
+            if(canvasElem) {
+                const newCanvas = canvasElem.cloneNode(true);
+                canvasElem.parentNode?.replaceChild(newCanvas, canvasElem);
+            }
+        }
+        activeMoleIdx = null; pokeActiveIdx = null;
+        dynamicZone.innerHTML = '';
+    }
+    
+    // ========= 打地鼠 =========
+    function initWhackGame() {
+        dynamicZone.innerHTML = '<div class="mole-grid" id="moleGrid"></div>';
+        const grid = document.getElementById('moleGrid');
+        for(let i=0;i<9;i++) {
+            const hole = document.createElement('div');
+            hole.className = 'hole';
+            hole.innerText = '🕳️';
+            hole.dataset.id = i;
+            hole.onclick = () => {
+                if(!isInMiniGame || currentMiniWin) return;
+                if(hole.classList.contains('capy-mole')) {
+                    playEffect('hit');
+                    miniGameScore++;
+                    gameProgressSpan.innerText = `🎯 进度: ${miniGameScore} / 5`;
+                    hole.classList.remove('capy-mole');
+                    hole.innerText = '🕳️';
+                    if(activeMoleIdx !== null) activeMoleIdx = null;
+                    if(miniGameScore >= 5) miniGameWin();
+                } else {
+                    playEffect('wrong');
+                    gameMessageDiv.innerHTML = "😿 敲空了！快打水豚地鼠~";
+                }
+            };
+            grid.appendChild(hole);
+        }
+        miniGameScore = 0;
+        gameProgressSpan.innerText = `🎯 进度: 0 / 5`;
+        gameMessageDiv.innerHTML = "🐹 快速点击戴着水豚帽的地鼠！5次胜利！";
+        miniGameActive = true;
+        if(miniSpawnInterval) clearInterval(miniSpawnInterval);
+        miniSpawnInterval = setInter3val(() => {
+            if(!isInMiniGame || currentMiniWin || !miniGameActive) return;
+            if(activeMoleIdx !== null) {
+                const oldHole = document.querySelector(`.hole[data-id='${activeMoleIdx}']`);
+                if(oldHole) { oldHole.classList.remove('capy-mole'); oldHole.innerText = '🕳️'; }
+            }
+            let newIdx = Math.floor(Math.random()*9);
+            const newHole = document.querySelector(`.hole[data-id='${newIdx}']`);
+            if(newHole) {
+                newHole.classList.add('capy-mole');
+                newHole.innerText = '🦫💥';
+                activeMoleIdx = newIdx;
+            }
+        }, 880);
+    }
+    
+    // ========= 抓宝可梦 =========
+    function initPokemonGame() {
+        dynamicZone.innerHTML = '<div class="poke-grid" id="pokeGrid"></div>';
+        const grid = document.getElementById('pokeGrid');
+        for(let i=0;i<9;i++) {
+            const card = document.createElement('div');
+            card.className = 'poke-card';
+            card.innerText = '❓';
+            card.dataset.id = i;
+            card.onclick = () => {
+                if(!isInMiniGame || currentMiniWin) return;
+                if(card.innerText === '⚡🐱') {
+                    playEffect('hit');
+                    miniGameScore++;
+                    gameProgressSpan.innerText = `🎯 进度: ${miniGameScore} / 5`;
+                    card.innerText = '🎉';
+                    card.style.background = '#ffcc77';
+                    if(pokeActiveIdx === i) pokeActiveIdx = null;
+                    if(miniGameScore >= 5) miniGameWin();
+                } else {
+                    playEffect('wrong');
+                    gameMessageDiv.innerHTML = "🌟 没抓到，继续点击皮卡丘！";
+                }
+            };
+            grid.appendChild(card);
+        }
+        miniGameScore = 0;
+        gameProgressSpan.innerText = `🎯 进度: 0 / 5`;
+        gameMessageDiv.innerHTML = "⚡ 快点击出现的皮卡丘！集齐5次获胜 ⚡";
+        miniGameActive = true;
+        if(miniSpawnInterval) clearInterval(miniSpawnInterval);
+        miniSpawnInterval = setInterval(() => {
+            if(!isInMiniGame || currentMiniWin || !miniGameActive) return;
+            if(pokeActiveIdx !== null) {
+                const oldCard = document.querySelector(`.poke-card[data-id='${pokeActiveIdx}']`);
+                if(oldCard && oldCard.innerText !== '🎉') oldCard.innerText = '❓';
+            }
+            let candidates = [];
+            for(let i=0;i<9;i++) {
+                let card = document.querySelector(`.poke-card[data-id='${i}']`);
+                if(card && card.innerText !== '🎉') candidates.push(i);
+            }
+            if(candidates.length===0) return;
+            let newIdx = candidates[Math.floor(Math.random()*candidates.length)];
+            const newCard = document.querySelector(`.poke-card[data-id='${newIdx}']`);
+            if(newCard && newCard.innerText !== '🎉') {
+                newCard.innerText = '⚡🐱';
+                pokeActiveIdx = newIdx;
+            }
+        }, 950);
+    }
+    
+    // ========= Minion 接香蕉 =========
+    function initMinionGame() {
+        dynamicZone.innerHTML = `<canvas id="minionCanvas" width="300" height="200" style="width:100%; max-width:300px; background:#8bc34a; border-radius:35px;"></canvas>
+                                 <div class="control-tip">🍌 左右移动鼠标/手指 → 用水豚头接香蕉 🍌</div>`;
+        const canvas = document.getElementById('minionCanvas');
+        if(!canvas) return;
+        const ctx = canvas.getContext('2d');
+        canvasCtx = ctx;
+        canvas.width = 300; canvas.height = 200;
+        let basketX = 130;
+        let bananas = [];
+        let scoreBanana = 0;
+        miniGameScore = 0;
+        gameProgressSpan.innerText = `🎯 进度: 0 / 5`;
+        gameMessageDiv.innerHTML = "🍌 移动下方水豚，接住香蕉！5个胜利！";
+        miniGameActive = true;
+        
+        function moveHandler(e) {
+            if(!isInMiniGame || currentMiniWin) return;
+            let rect = canvas.getBoundingClientRect();
+            let scaleX = canvas.width / rect.width;
+            let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            let mouseX = (clientX - rect.left) * scaleX;
+            basketX = Math.min(Math.max(mouseX - 30, 0), canvas.width-60);
+        }
+        canvas.addEventListener('mousemove', moveHandler);
+        canvas.addEventListener('touchmove', moveHandler);
+        canvas.addEventListener('touchstart', moveHandler);
+        
+        if(miniSpawnInterval) clearInterval(miniSpawnInterval);
+        miniSpawnInterval = setInterval(() => {
+            if(!isInMiniGame || currentMiniWin) return;
+            bananas.push({ x: Math.random() * (canvas.width-20), y: 0, w: 14, h: 14 });
+        }, 700);
+        
+        function draw() {
+            if(!ctx || !isInMiniGame || (currentMiniWin && !animFrame)) { if(animFrame) cancelAnimationFrame(animFrame); return; }
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#5B8C2A';
+            ctx.fillRect(0, canvas.height-35, canvas.width, 35);
+            ctx.fillStyle = '#D48C3A';
+            ctx.fillRect(basketX, canvas.height-38, 60, 20);
+            ctx.font = "28px 'Segoe UI Emoji'";
+            ctx.fillStyle = "#3F250B";
+            ctx.fillText("🦫", basketX+18, canvas.height-18);
+            for(let i=0;i<bananas.length;i++) {
+                let b = bananas[i];
+                ctx.fillStyle = '#F7D44A';
+                ctx.fillRect(b.x, b.y, b.w, b.h);
+                ctx.fillStyle = '#AA8C3A';
+                ctx.fillRect(b.x+4, b.y+4, 5, 5);
+                b.y += 3.5;
+            }
+            for(let i=bananas.length-1;i>=0;i--) {
+                let b = bananas[i];
+                if(b.y + b.h > canvas.height-35 && b.x+ b.w > basketX && b.x < basketX+60) {
+                    playEffect('hit');
+                    bananas.splice(i,1);
+                    scoreBanana++;
+                    miniGameScore = scoreBanana;
+                    gameProgressSpan.innerText = `🎯 进度: ${miniGameScore} / 5`;
+                    if(miniGameScore >= 5) { miniGameWin(); return; }
+                } else if(b.y > canvas.height) {
+                    bananas.splice(i,1);
+                }
+            }
+            animFrame = requestAnimationFrame(draw);
+        }
+        if(animFrame) cancelAnimationFrame(animFrame);
+        draw();
+        window._minionClean = () => {
+            cancelAnimationFrame(animFrame);
+            canvas.removeEventListener('mousemove', moveHandler);
+            canvas.removeEventListener('touchmove', moveHandler);
+        };
+    }
+    
+    // 重试按钮
+    document.getElementById('retryMiniBtn').addEventListener('click', () => {
+        if(!isInMiniGame) return;
+        if(miniInterval) clearInterval(miniInterval);
+        if(miniSpawnInterval) clearInterval(miniSpawnInterval);
+        cleanupMiniSpecific();
+        currentMiniWin = false;
+        miniGameScore = 0;
+        miniGameTime = 15;
+        gameTimerSpan.innerText = `⏱️ 剩余: 15s`;
+        gameProgressSpan.innerText = `🎯 进度: 0 / 5`;
+        gameMessageDiv.innerHTML = "🔄 重来啦！加油通过！";
+        if(miniGameType === 'whack') initWhackGame();
+        else if(miniGameType === 'pokemon') initPokemonGame();
+        else if(miniGameType === 'minion') initMinionGame();
+        startMiniGameTimer();
+    });
+    
+    function fullGameReset() {
+        // 重置所有状态
+        if(miniInterval) clearInterval(miniInterval);
+        if(miniSpawnInterval) clearInterval(miniSpawnInterval);
+        cleanupMiniSpecific();
+        isInMiniGame = false;
+        currentMiniWin = false;
+        miniPanel.classList.add('hidden');
+        totalMatched = 0;
+        correctStreak = 0;
+        usedIndices = [];
+        updateStatsUI();
+        renderQuestion();
+        feedDiv.innerHTML = "🌸 全新开始！配对量词，集满3连胜玩小游戏～ 🌸";
+        actionArea.innerHTML = '';
+    }
+    
+    // 开始游戏
+    renderQuestion();
+    updateStatsUI();
+</script>
+</body>
+</html>
+```
